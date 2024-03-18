@@ -1,6 +1,6 @@
 # Oraged!
 
-Oraged is a Google Chrome externsion, which help you to be more organized and productive. It's a simple to-do list and Note pad within reach of a new tab.
+Oraged! is a Google Chrome extension that helps you be more organized and productive. It's a simple to-do list and Note pad within reach of a new tab.
 
 ## Features
 
