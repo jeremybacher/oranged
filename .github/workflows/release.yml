@@ -1,0 +1,57 @@
+name: Build project and create a release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build project
+        run: yarn build
+
+      - name: Rename dist directory
+        run: mv dist oranged
+
+      - name: Run zip
+        run: zip -r oranged.zip oranged
+
+      - name: Extract short commit hash
+        id: extract_sha
+        run: echo "::set-output name=short_sha::$(echo ${GITHUB_SHA:0:5})"
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.extract_sha.outputs.short_sha }}
+          release_name: Oranged version - ${{ steps.extract_sha.outputs.short_sha }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./oranged.zip
+          asset_name: oranged.zip
+          asset_content_type: application/zip
