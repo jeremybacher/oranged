@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Oranged!",
+  "description": "A simple way to be more organized.",
+  "version": "0.0.1",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "action": {
+    "default_icon": "favicon.ico"
+  }
+}
