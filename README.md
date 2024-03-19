@@ -1,6 +1,6 @@
-# Oraged!
+# Oranged!
 
-Oraged! is a Google Chrome extension that helps you be more organized and productive. It's a simple to-do list and Note pad within reach of a new tab.
+Oranged! is a Google Chrome extension that helps you be more organized and productive. It's a simple to-do list and Note pad within reach of a new tab.
 
 ## Features
 
@@ -9,7 +9,7 @@ Oraged! is a Google Chrome extension that helps you be more organized and produc
 
 ## Installation
 
-1. Download the last release.
+1. Download the last version from the [release](https://github.com/jeremybacher/oranged/releases) page.
 2. Unzip the file.
 3. Open Google Chrome and go to `chrome://extensions/`.
 4. Enable the developer mode.
