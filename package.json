@@ -1,7 +1,7 @@
 {
   "name": "oranged",
   "version": "0.0.1",
-  "description": "Oraged is a Google Chrome externsion, which help you to be more organized and productive. It's a simple to-do list and Note pad within reach of a new tab.",
+  "description": "Oranged! is a Google Chrome extension that helps you be more organized and productive. It's a simple to-do list and Note pad within reach of a new tab.",
   "main": "index.js",
   "scripts": {
     "dev": "webpack --watch --config webpack.dev.js",
