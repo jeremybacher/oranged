@@ -42,12 +42,29 @@ const Notes = () => {
           });
           setNote(value);
         }}
+        inputProps={{
+          style: {
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            top: 0,
+            left: 0,
+          },
+        }}
         InputProps={{
           rows: note ? note.split("\n").length : 1,
           multiline: true,
           inputComponent: "textarea",
           autoComplete: "off",
           disableUnderline: true,
+          style: {
+            width: "100%",
+            height: "100%",
+          },
+        }}
+        style={{
+          width: "100%",
+          height: "100%",
         }}
       />
     </Box>
