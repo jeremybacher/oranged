@@ -152,7 +152,7 @@ const DialogTask = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button type="submit" variant="text">
+        <Button type="button" variant="contained">
           {dialogTaskData.editableTaskId ? "Save" : "Create"}
         </Button>
       </DialogActions>
