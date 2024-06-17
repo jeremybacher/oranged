@@ -10,8 +10,7 @@ import DialogTask from "./DialogTask";
 const Tasks = () => {
   const { tasks } = React.useContext(TaskContext);
   const [dialogTaskData, setDialogTaskData] = React.useState({
-    openDialog: false,
-    editableTaskId: "",
+    openDialog: false
   });
 
   return (
@@ -19,11 +18,13 @@ const Tasks = () => {
       <Box
         sx={(theme) => ({
           bgcolor: theme.palette.background.paper,
+          mb: 2,
           display: "flex",
           flexDirection: "column",
           overflowY: "scroll",
           height: "70vh",
           width: "150vh",
+          position: "relative"
         })}
       >
         {tasks.length > 0 ? (
@@ -36,25 +37,23 @@ const Tasks = () => {
           </Typography>
         )}
       </Box>
-      <Box
-        sx={{ display: "flex", flexDirection: "column", position: "relative" }}
-      >
-        <IconButton
-          sx={{ position: "absolute", right: 2, bottom: 1 }}
-          color="primary"
-          size="large"
-          onClick={() => {
-            console.log("capo");
-            setDialogTaskData({ openDialog: true, editableTaskId: "" });
-          }}
-        >
-          <AddCircle fontSize="large" />
-        </IconButton>
-      </Box>
-      <DialogTask
+      <div style={{position: "relative", cursor: "pointer" }}>
+        <AddCircle color="primary" fontSize="large" onClick={() => {
+          setDialogTaskData({ openDialog: true });
+        }} sx={{ position: "absolute", right: 6, bottom: 6, padding: 0, zIndex: 1 }} />
+        <div style={{
+            backgroundColor: "white",
+            position: "absolute",
+            right: 16,
+            bottom: 15,
+            width: "15px",
+            height: "15px",
+        }}></div>
+      </div>
+      {dialogTaskData.openDialog && <DialogTask
         dialogTaskData={dialogTaskData}
         setDialogTaskData={setDialogTaskData}
-      />
+      /> }
     </React.Fragment>
   );
 };

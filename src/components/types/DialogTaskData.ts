@@ -1,4 +1,4 @@
 interface DialogTaskData {
   openDialog: boolean;
-  editableTaskId: string;
+  editableTaskId?: string;
 }
