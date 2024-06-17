@@ -23,21 +23,16 @@ const DialogTask = ({
   const { tasks, setTasks } = React.useContext(TaskContext);
   const { setMessage } = React.useContext(SnackContext);
   const [errorTitle, setErrorTitle] = React.useState("");
-  const [errorDesription, setErrorDescription] = React.useState("");
+  const [errorDescription, setErrorDescription] = React.useState("");
 
   const editableTask = tasks.find(
     (task) => task.id === dialogTaskData.editableTaskId
   );
 
-  useEffect(() => {
-    if (dialogTaskData.editableTaskId) {
-      setDialogTaskData({ ...dialogTaskData, openDialog: true });
-    }
-  }, [dialogTaskData.editableTaskId, setDialogTaskData]);
-
   const handleClose = () => {
     setErrorTitle("");
-    setDialogTaskData({ openDialog: false, editableTaskId: "" });
+    setErrorDescription("");
+    setDialogTaskData({ openDialog: false });
   };
 
   return (
@@ -76,6 +71,7 @@ const DialogTask = ({
             return;
           }
 
+          handleClose();
           let updatedTasks = [];
           if (dialogTaskData.editableTaskId) {
             updatedTasks = tasks.map((task) => {
@@ -102,9 +98,8 @@ const DialogTask = ({
 
           chrome.storage.sync.set({ tasks: JSON.stringify(updatedTasks) });
           setTasks(updatedTasks);
-
-          handleClose();
         },
+        sx: { bgcolor: theme => theme.palette.background.paper },
       }}
     >
       <DialogTitle>
@@ -124,7 +119,7 @@ const DialogTask = ({
           }}
           sx={{ mb: 2 }}
           defaultValue={editableTask ? editableTask.title : ""}
-          error={errorTitle ? true : false}
+          error={!!errorTitle}
           helperText={errorTitle || ""}
         />
         <TextField
@@ -135,8 +130,8 @@ const DialogTask = ({
           variant="outlined"
           placeholder="Enter the description of the task"
           fullWidth
-          error={errorDesription ? true : false}
-          helperText={errorDesription || ""}
+          error={!!errorDescription}
+          helperText={errorDescription || ""}
           InputProps={{
             rows: 3,
             multiline: true,
@@ -152,7 +147,7 @@ const DialogTask = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button type="button" variant="contained">
+        <Button type="submit" variant="contained">
           {dialogTaskData.editableTaskId ? "Save" : "Create"}
         </Button>
       </DialogActions>
