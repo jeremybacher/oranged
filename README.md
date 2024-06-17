@@ -4,8 +4,22 @@ Oranged! is a Google Chrome extension that helps you be more organized and produ
 
 ## Features
 
-- Add, edit, delete and mark as done your tasks.
-- Take and save notes.
+### Add, edit, delete and mark as done your tasks.
+
+![Tasks](assets/images/tasks.png)
+![Example Tasks](assets/images/tasks_with_examples.png)
+![Creating Task](assets/images/tasks_creating.png)
+![Editing Task](assets/images/tasks_editing.png)
+![Done Task.png](assets/images/tasks_done.png)
+
+### Take and save notes.
+
+![Notes](assets/images/notes.png)
+
+### Light theme for tasks and notes.
+
+![Light Tasks](assets/images/tasks_light.png)
+![Light Notes](assets/images/notes_light.png)
 
 ## Installation
 
