@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useCallback, memo } from "react";
+import React, { useContext, useCallback, memo } from "react";
 import {
   Button,
   Dialog,
@@ -47,7 +47,7 @@ const DialogTask = memo(({
     }
 
     const formData = new FormData(event.currentTarget);
-    const formJson = Object.fromEntries((formData as any).entries());
+    const formJson = Object.fromEntries(formData.entries()) as Record<string, string>;
     const title = formJson.title?.trim() || "";
     const description = formJson.description?.trim() || "";
 

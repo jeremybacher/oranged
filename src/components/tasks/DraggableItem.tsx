@@ -37,7 +37,7 @@ const DraggableItem = memo(({
 
   const [, drop] = useDrop({
     accept: "ITEM",
-    hover: (draggedItem: any) => {
+    hover: (draggedItem: { id: string; index: number }) => {
       if (draggedItem.index !== index) {
         moveTask(draggedItem.index, index);
         draggedItem.index = index;

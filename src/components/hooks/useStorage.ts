@@ -35,7 +35,7 @@ export function useStorage<T>(
           return;
         }
         
-        const result = await new Promise<Record<string, any>>((resolve, reject) => {
+        const result = await new Promise<Record<string, unknown>>((resolve, reject) => {
           const timeoutId = setTimeout(() => {
             reject(new Error('Chrome storage timeout'));
           }, 5000); // 5 second timeout
@@ -52,7 +52,7 @@ export function useStorage<T>(
 
         const storedValue = result[key];
         if (storedValue !== undefined) {
-          setValue(storedValue);
+          setValue(storedValue as T);
         } else {
           setValue(defaultValueRef.current);
         }
@@ -137,7 +137,7 @@ export function useJSONStorage<T>(
           return;
         }
         
-        const result = await new Promise<Record<string, any>>((resolve, reject) => {
+        const result = await new Promise<Record<string, unknown>>((resolve, reject) => {
           const timeoutId = setTimeout(() => {
             reject(new Error('Chrome storage timeout'));
           }, 5000); // 5 second timeout

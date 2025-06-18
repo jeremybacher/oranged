@@ -11,7 +11,7 @@ interface TestTask {
 describe('useJSONStorage', () => {
   beforeEach(() => {
     // Clear any existing chrome global
-    delete (global as any).chrome;
+    delete (global as Record<string, unknown>).chrome;
     
     // Clear console warnings for cleaner test output
     jest.spyOn(console, 'warn').mockImplementation(() => {});
@@ -89,7 +89,7 @@ describe('useJSONStorage', () => {
       },
     };
 
-    (global as any).chrome = mockChromeStorage;
+    (global as Record<string, unknown>).chrome = mockChromeStorage;
 
     const { result } = renderHook(() => 
       useJSONStorage<TestTask[]>('tasks', [])
@@ -123,7 +123,7 @@ describe('useJSONStorage', () => {
       },
     };
 
-    (global as any).chrome = mockChromeStorage;
+    (global as Record<string, unknown>).chrome = mockChromeStorage;
 
     const { result } = renderHook(() => 
       useJSONStorage<TestTask[]>('tasks', [])

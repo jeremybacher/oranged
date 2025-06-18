@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, memo } from "react";
+import React, { useCallback, memo } from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import customTheme from "./components/themes/customTheme";
-import { Container, CssBaseline, PaletteMode, Paper, useMediaQuery } from "@mui/material";
+import { Container, CssBaseline, PaletteMode, Paper } from "@mui/material";
 import { ToggleThemeMode } from "./components/ToggleThemeMode";
 import General from "./components/General";
 import { TaskProvider } from "./components/context/TasksContext";
@@ -12,7 +12,6 @@ import { useStorage } from "./components/hooks/useStorage";
 const App = memo(() => {
   const { value: mode, setValue: setMode } = useStorage<PaletteMode>('themeMode', 'light');
   const theme = createTheme(customTheme(mode || 'light'));
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const toggleThemeMode = useCallback(async () => {
     const newMode = mode === "light" ? "dark" : "light";

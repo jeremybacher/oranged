@@ -1,14 +1,6 @@
 import React from 'react';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { TaskContext, TaskProvider } from '../TasksContext';
-
-// Mock the chrome storage API
-const mockChromeStorage = {
-  sync: {
-    get: jest.fn(),
-    set: jest.fn(),
-  },
-};
 
 // Mock the useStorage hook
 jest.mock('../../hooks/useStorage', () => ({
