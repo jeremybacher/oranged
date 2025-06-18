@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useContext, useState, useCallback, memo } from "react";
 import {
   Box,
   Stack,
@@ -11,17 +11,25 @@ import Notes from "./Notes";
 import Tasks from "./tasks";
 import { TaskContext } from "./context/TasksContext";
 import { SnackContext } from "./context/SnackContext";
+import { useStorage } from "./hooks/useStorage";
+import type { Tab } from "./types/Tab";
 
-const General = () => {
-  const [tab, setTab] = React.useState<number>(0);
-  const { tasks } = React.useContext(TaskContext);
-  const { message, setMessage } = React.useContext(SnackContext);
+const General = memo(() => {
+  const { value: tab, setValue: setTabStorage } = useStorage<number>('activeTab', 0);
+  const { tasks } = useContext(TaskContext);
+  const { message, setMessage } = useContext(SnackContext);
 
-  useEffect(() => {
-    chrome.storage.sync.get(["activeTab"], function (result) {
-      setTab(result.activeTab || 0);
-    });
-  }, []);
+  const handleTabChange = useCallback(async (_: React.SyntheticEvent, newTab: number) => {
+    try {
+      await setTabStorage(newTab);
+    } catch (error) {
+      console.error('Failed to save active tab:', error);
+    }
+  }, [setTabStorage]);
+
+  const handleCloseSnackbar = useCallback(() => {
+    setMessage("");
+  }, [setMessage]);
 
   const tabs: Tab[] = [
     {
@@ -39,54 +47,63 @@ const General = () => {
 
   return (
     <Box
-      component={"section"}
-      sx={{ display: "flex", flexDirection: "column", flex: 1 }}
+      component="section"
+      sx={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}
     >
       <Stack id="general">
         <Tabs
-          value={tab}
-          onChange={(_: React.SyntheticEvent, newTab: number) => {
-            chrome.storage.sync.set({ activeTab: newTab });
-            setTab(newTab);
-          }}
+          value={tab || 0}
+          onChange={handleTabChange}
           textColor="inherit"
           indicatorColor="primary"
           variant="fullWidth"
+          sx={{
+            borderBottom: 1,
+            borderColor: 'divider',
+            mb: 2,
+          }}
         >
-          {tabs.map((tab: Tab) => (
+          {tabs.map((currentTab: Tab) => (
             <MuiTab
-              key={tab.id}
-              value={tab.id}
+              key={currentTab.id}
+              value={currentTab.id}
               label={
-                tab.length && tab.length > 0
-                  ? `${tab.label} (${tab.length})`
-                  : tab.label
+                currentTab.length && currentTab.length > 0
+                  ? `${currentTab.label} (${currentTab.length})`
+                  : currentTab.label
               }
-              sx={{ width: `${100 / tabs.length}%` }}
+              sx={{ 
+                width: `${100 / tabs.length}%`,
+                minHeight: 48,
+              }}
             />
           ))}
         </Tabs>
       </Stack>
+      
       {tabs.map((current) => (
         <Box
           key={current.id}
-          component={"div"}
+          component="div"
           sx={{
-            display: tab === current.id ? "block" : "none",
-            mt: 2,
+            display: (tab || 0) === current.id ? "flex" : "none",
+            flexDirection: "column",
             flex: 1,
+            minHeight: 0,
           }}
         >
           {current.tabs}
         </Box>
       ))}
+      
       <Snackbar
         open={message !== ""}
         autoHideDuration={5000}
-        onClose={() => setMessage("")}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert
-          onClose={() => setMessage("")}
+          onClose={handleCloseSnackbar}
           severity="error"
           variant="filled"
           sx={{ width: "100%" }}
@@ -96,6 +113,8 @@ const General = () => {
       </Snackbar>
     </Box>
   );
-};
+});
+
+General.displayName = 'General';
 
 export default General;

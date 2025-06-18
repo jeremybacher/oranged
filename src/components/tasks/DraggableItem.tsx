@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo, useCallback, useContext } from "react";
 import {
   Box,
   Checkbox,
@@ -13,13 +13,14 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import { DragIndicator } from "@mui/icons-material";
 import { TaskContext } from "../context/TasksContext";
+import type { Task } from "../types/Task";
 
 interface DraggableItemProps extends Task {
   index: number;
   onEditTask: (id: string) => void;
 }
 
-const DraggableItem = ({
+const DraggableItem = memo(({
   id,
   title,
   description,
@@ -27,7 +28,7 @@ const DraggableItem = ({
   index,
   onEditTask,
 }: DraggableItemProps) => {
-  const { tasks, setTasks } = React.useContext(TaskContext);
+  const { tasks, setTasks } = useContext(TaskContext);
 
   const [, ref] = useDrag({
     type: "ITEM",
@@ -44,15 +45,19 @@ const DraggableItem = ({
     },
   });
 
-  const moveTask = (fromIndex: number, toIndex: number) => {
+  const moveTask = useCallback(async (fromIndex: number, toIndex: number) => {
     const updatedTasks = [...tasks];
     const [movedItem] = updatedTasks.splice(fromIndex, 1);
     updatedTasks.splice(toIndex, 0, movedItem);
-    chrome.storage.sync.set({ tasks: JSON.stringify(updatedTasks) });
-    setTasks(updatedTasks);
-  };
+    
+    try {
+      await setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Failed to save task order:', error);
+    }
+  }, [tasks, setTasks]);
 
-  const completedTask = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const completedTask = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const updatedTasks = tasks.map((task) => {
       if (task.id === event.target.name) {
         return { ...task, completed: event.target.checked };
@@ -60,32 +65,50 @@ const DraggableItem = ({
       return task;
     });
 
-    chrome.storage.sync.set({ tasks: JSON.stringify(updatedTasks) });
-    setTasks(updatedTasks);
-  };
-
-  const removeTask = (id: string) => {
-    if (confirm("Are you sure to delete this task?")) {
-      const updatedTasks = tasks.filter((task) => task.id !== id);
-      chrome.storage.sync.set({ tasks: JSON.stringify(updatedTasks) });
-      setTasks(updatedTasks);
+    try {
+      await setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Failed to update task completion:', error);
     }
-  };
+  }, [tasks, setTasks]);
+
+  const removeTask = useCallback(async (taskId: string) => {
+    if (confirm("Are you sure you want to delete this task?")) {
+      const updatedTasks = tasks.filter((task) => task.id !== taskId);
+      try {
+        await setTasks(updatedTasks);
+      } catch (error) {
+        console.error('Failed to delete task:', error);
+      }
+    }
+  }, [tasks, setTasks]);
+
+  const handleEditTask = useCallback(() => {
+    onEditTask(id);
+  }, [id, onEditTask]);
+
+  const handleRemoveTask = useCallback(() => {
+    removeTask(id);
+  }, [id, removeTask]);
 
   return (
     <ListItem
       ref={(node) => ref(drop(node))}
-      key={id}
       divider
       secondaryAction={
         <Box component="span" sx={{ display: "flex", alignItems: "center" }}>
-          <IconButton edge="end" aria-label="edit" sx={{ mr: 1 }} onClick={() => onEditTask(id)}>
+          <IconButton 
+            edge="end" 
+            aria-label={`Edit task: ${title}`} 
+            sx={{ mr: 1 }} 
+            onClick={handleEditTask}
+          >
             <EditIcon />
           </IconButton>
           <IconButton
             edge="end"
-            aria-label="delete"
-            onClick={() => removeTask(id)}
+            aria-label={`Delete task: ${title}`}
+            onClick={handleRemoveTask}
           >
             <DeleteIcon />
           </IconButton>
@@ -98,10 +121,11 @@ const DraggableItem = ({
       </ListItemIcon>
       <ListItemAvatar>
         <Checkbox
-          name={`${id}`}
+          name={id}
           checked={completed}
           color="success"
           onChange={completedTask}
+          aria-label={`Mark task "${title}" as ${completed ? 'incomplete' : 'complete'}`}
         />
       </ListItemAvatar>
       <ListItemText
@@ -109,10 +133,13 @@ const DraggableItem = ({
         secondary={description}
         sx={{
           textDecoration: completed ? "line-through" : "none",
+          opacity: completed ? 0.7 : 1,
         }}
       />
     </ListItem>
   );
-};
+});
+
+DraggableItem.displayName = 'DraggableItem';
 
 export default DraggableItem;
