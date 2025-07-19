@@ -1,4 +1,4 @@
-interface Tab {
+export interface Tab {
   id: number;
   label: string;
   tabs: React.ReactNode;

@@ -1,17 +1,50 @@
-import React from "react";
-import { Box, IconButton, Typography } from "@mui/material";
+import React, { memo, useContext, useState, useCallback } from "react";
+import { Box, Typography, Fab } from "@mui/material";
 import { DndProvider } from "react-dnd";
-import { AddCircle } from "@mui/icons-material";
+import { Add } from "@mui/icons-material";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import TaskList from "./TaskList";
 import { TaskContext } from "../context/TasksContext";
 import DialogTask from "./DialogTask";
+import LoadingSpinner from "../LoadingSpinner";
+import type { DialogTaskData } from "../types/DialogTaskData";
 
-const Tasks = () => {
-  const { tasks } = React.useContext(TaskContext);
-  const [dialogTaskData, setDialogTaskData] = React.useState({
+const Tasks = memo(() => {
+  const { tasks, loading, error } = useContext(TaskContext);
+  const [dialogTaskData, setDialogTaskData] = useState<DialogTaskData>({
     openDialog: false
   });
+
+  const handleAddTask = useCallback(() => {
+    setDialogTaskData({ openDialog: true });
+  }, []);
+
+  if (loading) {
+    return <LoadingSpinner message="Loading tasks..." fullHeight />;
+  }
+
+  if (error) {
+    return (
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          height: '70vh',
+          p: 3,
+          color: 'error.main'
+        }}
+      >
+        <Typography variant="h6" align="center" sx={{ mb: 2 }}>
+          Error loading tasks
+        </Typography>
+        <Typography variant="body2" align="center">
+          {error}
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <React.Fragment>
@@ -21,10 +54,11 @@ const Tasks = () => {
           mb: 2,
           display: "flex",
           flexDirection: "column",
-          overflowY: "scroll",
+          overflowY: "auto",
           height: "70vh",
-          width: "150vh",
-          position: "relative"
+          maxWidth: "100%",
+          position: "relative",
+          borderRadius: 1,
         })}
       >
         {tasks.length > 0 ? (
@@ -32,30 +66,50 @@ const Tasks = () => {
             <TaskList setDialogTaskData={setDialogTaskData} />
           </DndProvider>
         ) : (
-          <Typography variant="body1" align="center" sx={{ mt: 3 }}>
-            No tasks to display! Click the button below to add a new task.
-          </Typography>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              height: '100%',
+              p: 3 
+            }}
+          >
+            <Typography variant="h6" align="center" color="text.secondary" sx={{ mb: 2 }}>
+              No tasks yet
+            </Typography>
+            <Typography variant="body2" align="center" color="text.secondary">
+              Click the + button below to add your first task
+            </Typography>
+          </Box>
         )}
       </Box>
-      <div style={{position: "relative", cursor: "pointer" }}>
-        <AddCircle color="primary" fontSize="large" onClick={() => {
-          setDialogTaskData({ openDialog: true });
-        }} sx={{ position: "absolute", right: 6, bottom: 6, padding: 0, zIndex: 1 }} />
-        <div style={{
-            backgroundColor: "white",
-            position: "absolute",
-            right: 16,
-            bottom: 15,
-            width: "15px",
-            height: "15px",
-        }}></div>
-      </div>
-      {dialogTaskData.openDialog && <DialogTask
-        dialogTaskData={dialogTaskData}
-        setDialogTaskData={setDialogTaskData}
-      /> }
+      
+      <Fab
+        color="primary"
+        aria-label="Add new task"
+        onClick={handleAddTask}
+        sx={{
+          position: 'fixed',
+          bottom: 16,
+          right: 16,
+          zIndex: 1000,
+        }}
+      >
+        <Add />
+      </Fab>
+
+      {dialogTaskData.openDialog && (
+        <DialogTask
+          dialogTaskData={dialogTaskData}
+          setDialogTaskData={setDialogTaskData}
+        />
+      )}
     </React.Fragment>
   );
-};
+});
+
+Tasks.displayName = 'Tasks';
 
 export default Tasks;
