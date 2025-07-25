@@ -64,18 +64,35 @@ Oranged! is a modern, feature-rich Google Chrome extension that helps you stay o
 
 1. **Download the latest release** from the [releases page](https://github.com/jeremybacher/oranged/releases)
 2. **Extract the ZIP file** to a local directory
-3. **Open Chrome** and navigate to `chrome://extensions/`
-4. **Enable Developer Mode** using the toggle in the top-right corner
-5. **Click "Load unpacked"** and select the extracted `oranged` folder
-6. **Open a new tab** and start organizing! 🎉
+3. **Install in Chrome**:
+   - Open Chrome and navigate to `chrome://extensions/`
+   - Enable **Developer Mode** using the toggle in the top-right corner
+   - Click **"Load unpacked"** and select the extracted folder containing the extension files
+   - Open a new tab and start organizing! 🎉
 
-### For Developers (Local Installation)
+### For Developers
 
-1. **Clone and build the project** (see Development section below)
-2. **Open Chrome** and navigate to `chrome://extensions/`
-3. **Enable Developer Mode**
-4. **Click "Load unpacked"** and select the `dist` folder after building
-5. **Reload the extension** after making changes during development
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/jeremybacher/oranged.git
+   cd oranged
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Run development build**:
+   ```bash
+   npm run dev
+   ```
+
+4. **Load the extension in Chrome**:
+   - Open `chrome://extensions/`
+   - Enable Developer Mode
+   - Click "Load unpacked" and select the `dist` folder
+   - Reload the extension after making changes during development
 
 ## 🏗️ Architecture
 
@@ -293,12 +310,12 @@ We welcome contributions! Please follow these guidelines:
 
 ## 📄 License
 
-This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
+This project is open source and available under the ISC License.
 
 ## 🙋 Support & Feedback
 
-- **Bug reports**: [Create an issue](https://github.com/jeremybacher/oranged/issues/new?template=bug_report.md)
-- **Feature requests**: [Create an issue](https://github.com/jeremybacher/oranged/issues/new?template=feature_request.md)
+- **Bug reports**: [Create an issue](https://github.com/jeremybacher/oranged/issues/new)
+- **Feature requests**: [Create an issue](https://github.com/jeremybacher/oranged/issues/new)
 - **Questions**: [Start a discussion](https://github.com/jeremybacher/oranged/discussions)
 
 ---
