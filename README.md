@@ -72,27 +72,7 @@ Oranged! is a modern, feature-rich Google Chrome extension that helps you stay o
 
 ### For Developers
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/jeremybacher/oranged.git
-   cd oranged
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-3. **Run development build**:
-   ```bash
-   npm run dev
-   ```
-
-4. **Load the extension in Chrome**:
-   - Open `chrome://extensions/`
-   - Enable Developer Mode
-   - Click "Load unpacked" and select the `dist` folder
-   - Reload the extension after making changes during development
+For development setup, see the [Development](#-development) section below.
 
 ## 🏗️ Architecture
 
@@ -320,4 +300,4 @@ This project is open source and available under the ISC License.
 
 ---
 
-Made with ❤️ by [Jeremy Bacher](https://github.com/jeremybacher)
+Made with ❤️ by [Jeremy Bacher](https://x.com/jeremybacher)
