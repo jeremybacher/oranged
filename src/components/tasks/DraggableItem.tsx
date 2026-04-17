@@ -1,23 +1,31 @@
-import React, { memo, useCallback, useContext } from "react";
+import React, { memo, useCallback, useContext, useState } from "react";
 import {
   Box,
+  Button,
   Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   IconButton,
   ListItem,
-  ListItemAvatar,
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
 import { useDrag, useDrop } from "react-dnd";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import { DragIndicator } from "@mui/icons-material";
+import { CheckCircle, CheckCircleOutline, DragIndicator } from "@mui/icons-material";
 import { TaskContext } from "../context/TasksContext";
+import { renderWithLinks } from "../utils/renderWithLinks";
 import type { Task } from "../types/Task";
 
 interface DraggableItemProps extends Task {
   index: number;
   onEditTask: (id: string) => void;
+  selected: boolean;
+  onToggleSelect: (id: string) => void;
 }
 
 const DraggableItem = memo(({
@@ -27,8 +35,11 @@ const DraggableItem = memo(({
   completed,
   index,
   onEditTask,
+  selected,
+  onToggleSelect,
 }: DraggableItemProps) => {
   const { tasks, setTasks } = useContext(TaskContext);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const [, ref] = useDrag({
     type: "ITEM",
@@ -57,86 +68,90 @@ const DraggableItem = memo(({
     }
   }, [tasks, setTasks]);
 
-  const completedTask = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const updatedTasks = tasks.map((task) => {
-      if (task.id === event.target.name) {
-        return { ...task, completed: event.target.checked };
-      }
-      return task;
-    });
-
+  const toggleCompleted = useCallback(async () => {
+    const updatedTasks = tasks.map((task) =>
+      task.id === id ? { ...task, completed: !task.completed } : task
+    );
     try {
       await setTasks(updatedTasks);
     } catch (error) {
       console.error('Failed to update task completion:', error);
     }
-  }, [tasks, setTasks]);
+  }, [id, tasks, setTasks]);
 
-  const removeTask = useCallback(async (taskId: string) => {
-    if (confirm("Are you sure you want to delete this task?")) {
-      const updatedTasks = tasks.filter((task) => task.id !== taskId);
-      try {
-        await setTasks(updatedTasks);
-      } catch (error) {
-        console.error('Failed to delete task:', error);
-      }
+  const handleConfirmDelete = useCallback(async () => {
+    setConfirmOpen(false);
+    const updatedTasks = tasks.filter((task) => task.id !== id);
+    try {
+      await setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Failed to delete task:', error);
     }
-  }, [tasks, setTasks]);
+  }, [id, tasks, setTasks]);
 
   const handleEditTask = useCallback(() => {
     onEditTask(id);
   }, [id, onEditTask]);
 
-  const handleRemoveTask = useCallback(() => {
-    removeTask(id);
-  }, [id, removeTask]);
-
   return (
+    <React.Fragment>
     <ListItem
       ref={(node) => ref(drop(node))}
       divider
       secondaryAction={
         <Box component="span" sx={{ display: "flex", alignItems: "center" }}>
-          <IconButton 
-            edge="end" 
-            aria-label={`Edit task: ${title}`} 
-            sx={{ mr: 1 }} 
-            onClick={handleEditTask}
-          >
-            <EditIcon />
-          </IconButton>
           <IconButton
-            edge="end"
-            aria-label={`Delete task: ${title}`}
-            onClick={handleRemoveTask}
+            size="small"
+            aria-label={`Mark task "${title}" as ${completed ? "incomplete" : "complete"}`}
+            onClick={toggleCompleted}
+            sx={{ color: completed ? "success.main" : "action.disabled" }}
           >
-            <DeleteIcon />
+            {completed ? <CheckCircle fontSize="small" aria-hidden="true" /> : <CheckCircleOutline fontSize="small" aria-hidden="true" />}
+          </IconButton>
+          <IconButton size="small" aria-label={`Edit task: ${title}`} onClick={handleEditTask}>
+            <EditIcon fontSize="small" aria-hidden="true" />
+          </IconButton>
+          <IconButton size="small" edge="end" aria-label={`Delete task: ${title}`} onClick={() => setConfirmOpen(true)}>
+            <DeleteIcon fontSize="small" aria-hidden="true" />
           </IconButton>
         </Box>
       }
       sx={{ mt: 1 }}
     >
-      <ListItemIcon sx={{ cursor: "move" }}>
-        <DragIndicator />
+      <Checkbox
+        edge="start"
+        checked={selected}
+        onChange={() => onToggleSelect(id)}
+        size="small"
+        sx={{ mr: -1 }}
+        aria-label={`Select task "${title}"`}
+      />
+      <ListItemIcon sx={{ cursor: "move", minWidth: 32 }}>
+        <DragIndicator fontSize="small" aria-hidden="true" />
       </ListItemIcon>
-      <ListItemAvatar>
-        <Checkbox
-          name={id}
-          checked={completed}
-          color="success"
-          onChange={completedTask}
-          aria-label={`Mark task "${title}" as ${completed ? 'incomplete' : 'complete'}`}
-        />
-      </ListItemAvatar>
-      <ListItemText
+<ListItemText
         primary={title}
-        secondary={description}
+        secondary={description ? renderWithLinks(description) : undefined}
         sx={{
           textDecoration: completed ? "line-through" : "none",
           opacity: completed ? 0.7 : 1,
         }}
       />
     </ListItem>
+
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete task?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            &#8220;{title}&#8221; will be permanently deleted.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={handleConfirmDelete}>Delete</Button>
+        </DialogActions>
+      </Dialog>
+    </React.Fragment>
   );
 });
 

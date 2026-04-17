@@ -7,9 +7,11 @@ import type { DialogTaskData } from "../types/DialogTaskData";
 
 interface TaskListProps {
   setDialogTaskData: React.Dispatch<React.SetStateAction<DialogTaskData>>;
+  selectedIds: Set<string>;
+  onToggleSelect: (id: string) => void;
 }
 
-const TaskList = memo(({ setDialogTaskData }: TaskListProps) => {
+const TaskList = memo(({ setDialogTaskData, selectedIds, onToggleSelect }: TaskListProps) => {
   const { tasks } = React.useContext(TaskContext);
 
   const onEditTaskHandler = (id: string) => {
@@ -20,11 +22,13 @@ const TaskList = memo(({ setDialogTaskData }: TaskListProps) => {
     <Fragment>
       <List>
         {tasks.map((task: Task, index: number) => (
-          <DraggableItem 
-            key={task.id} 
-            {...task} 
-            index={index} 
-            onEditTask={onEditTaskHandler} 
+          <DraggableItem
+            key={task.id}
+            {...task}
+            index={index}
+            onEditTask={onEditTaskHandler}
+            selected={selectedIds.has(task.id)}
+            onToggleSelect={onToggleSelect}
           />
         ))}
       </List>

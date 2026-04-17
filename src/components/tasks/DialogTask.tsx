@@ -1,12 +1,18 @@
 import React, { useContext, useCallback, memo } from "react";
 import {
+  Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
+  IconButton,
+  InputLabel,
   TextField,
+  Typography,
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import { TaskContext } from "../context/TasksContext";
 import { v4 as uuidv4 } from "uuid";
 import { SnackContext } from "../context/SnackContext";
@@ -16,6 +22,9 @@ interface DialogTaskProps {
   dialogTaskData: DialogTaskData;
   setDialogTaskData: React.Dispatch<React.SetStateAction<DialogTaskData>>;
 }
+
+const TITLE_MAX = 100;
+const DESCRIPTION_MAX = 300;
 
 const DialogTask = memo(({
   dialogTaskData,
@@ -29,6 +38,18 @@ const DialogTask = memo(({
   const editableTask = tasks.find(
     (task) => task.id === dialogTaskData.editableTaskId
   );
+
+  const [titleValue, setTitleValue] = React.useState(editableTask?.title || "");
+  const [descriptionValue, setDescriptionValue] = React.useState(editableTask?.description || "");
+
+  React.useEffect(() => {
+    if (dialogTaskData.openDialog) {
+      setTitleValue(editableTask?.title || "");
+      setDescriptionValue(editableTask?.description || "");
+      setErrorTitle("");
+      setErrorDescription("");
+    }
+  }, [dialogTaskData.openDialog, dialogTaskData.editableTaskId]);
 
   const handleClose = useCallback(() => {
     setErrorTitle("");
@@ -61,13 +82,13 @@ const DialogTask = memo(({
       return;
     } 
     
-    if (title.length > 40) {
-      setErrorTitle("Title must be less than 40 characters");
+    if (title.length > TITLE_MAX) {
+      setErrorTitle(`Title must be less than ${TITLE_MAX} characters`);
       return;
     }
 
-    if (description && description.length > 200) {
-      setErrorDescription("Description must be less than 200 characters");
+    if (description && description.length > DESCRIPTION_MAX) {
+      setErrorDescription(`Description must be less than ${DESCRIPTION_MAX} characters`);
       return;
     }
 
@@ -107,62 +128,114 @@ const DialogTask = memo(({
     }
   }, [tasks, dialogTaskData, setTasks, setMessage, handleClose]);
 
+  const titleCountColor = titleValue.length >= 90 ? "error.main" : "text.disabled";
+  const descCountColor = descriptionValue.length >= 290 ? "error.main" : "text.disabled";
+
   return (
     <Dialog
       open={dialogTaskData.openDialog}
       onClose={handleClose}
       fullWidth
       maxWidth="sm"
+      aria-labelledby="dialog-task-title"
       PaperProps={{
         component: "form",
         onSubmit: handleSubmit,
-        sx: { bgcolor: theme => theme.palette.background.paper },
+        sx: {
+          borderRadius: 3,
+          bgcolor: "background.paper",
+        },
       }}
     >
-      <DialogTitle>
-        {dialogTaskData.editableTaskId ? "Edit" : "New"} Task
+      <DialogTitle
+        id="dialog-task-title"
+        sx={{ px: 3, pt: 3, pb: 1.5, display: "flex", alignItems: "center", justifyContent: "space-between" }}
+      >
+        <Typography variant="h6" component="span" fontWeight={600}>
+          {dialogTaskData.editableTaskId ? "Edit Task" : "New Task"}
+        </Typography>
+        <IconButton
+          aria-label="Close dialog"
+          onClick={handleClose}
+          size="small"
+          sx={{ color: "text.secondary", mr: -0.5 }}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
       </DialogTitle>
-      <DialogContent>
-        <TextField
-          id="title"
-          name="title"
-          hiddenLabel
-          size="medium"
-          variant="outlined"
-          placeholder="Enter the title of the task"
-          fullWidth
-          autoFocus
-          InputProps={{
-            autoComplete: "off",
-          }}
-          sx={{ mb: 2 }}
-          defaultValue={editableTask?.title || ""}
-          error={!!errorTitle}
-          helperText={errorTitle || ""}
-        />
-        <TextField
-          id="description"
-          name="description"
-          hiddenLabel
-          size="medium"
-          variant="outlined"
-          placeholder="Enter the description of the task (optional)"
-          fullWidth
-          error={!!errorDescription}
-          helperText={errorDescription || ""}
-          InputProps={{
-            rows: 3,
-            multiline: true,
-            inputComponent: "textarea",
-            autoComplete: "off",
-          }}
-          defaultValue={editableTask?.description || ""}
-        />
+
+      <Divider />
+
+      <DialogContent sx={{ px: 3, pt: 2.5, pb: 1 }}>
+        <Box sx={{ mb: 2.5 }}>
+          <InputLabel htmlFor="title" sx={{ mb: 0.75, fontSize: 13, fontWeight: 600, color: "text.primary" }}>
+            Title <Box component="span" sx={{ color: "error.main" }}>*</Box>
+          </InputLabel>
+          <TextField
+            id="title"
+            name="title"
+            size="medium"
+            variant="outlined"
+            placeholder="What needs to be done?"
+            fullWidth
+            autoFocus
+            inputProps={{ autoComplete: "off", maxLength: TITLE_MAX, "aria-required": "true" }}
+            value={titleValue}
+            onChange={(e) => setTitleValue(e.target.value)}
+            error={!!errorTitle}
+            helperText={
+              errorTitle ? (
+                <span>{errorTitle}</span>
+              ) : (
+                <Box component="span" sx={{ display: "block", textAlign: "right", fontVariantNumeric: "tabular-nums", color: titleCountColor }}>
+                  {titleValue.length}/{TITLE_MAX}
+                </Box>
+              )
+            }
+          />
+        </Box>
+
+        <Box>
+          <InputLabel htmlFor="description" sx={{ mb: 0.75, fontSize: 13, fontWeight: 600, color: "text.primary" }}>
+            Description
+            <Box component="span" sx={{ ml: 1, fontWeight: 400, color: "text.secondary", fontSize: 12 }}>
+              optional
+            </Box>
+          </InputLabel>
+          <TextField
+            id="description"
+            name="description"
+            size="medium"
+            variant="outlined"
+            placeholder="Add details, links, or notes…"
+            fullWidth
+            multiline
+            rows={4}
+            inputProps={{ autoComplete: "off", maxLength: DESCRIPTION_MAX }}
+            value={descriptionValue}
+            onChange={(e) => setDescriptionValue(e.target.value)}
+            error={!!errorDescription}
+            helperText={
+              errorDescription ? (
+                <span>{errorDescription}</span>
+              ) : (
+                <Box component="span" sx={{ display: "block", textAlign: "right", fontVariantNumeric: "tabular-nums", color: descCountColor }}>
+                  {descriptionValue.length}/{DESCRIPTION_MAX}
+                </Box>
+              )
+            }
+          />
+        </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose}>Cancel</Button>
-        <Button type="submit" variant="contained">
-          {dialogTaskData.editableTaskId ? "Save" : "Create"}
+
+      <Divider />
+
+      <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
+        <Button onClick={handleClose} variant="outlined" size="medium">
+          Cancel
+        </Button>
+        <Button type="submit" variant="contained" size="medium">
+          {dialogTaskData.editableTaskId ? "Save changes" : "Create task"}
         </Button>
       </DialogActions>
     </Dialog>
