@@ -1,26 +1,24 @@
 import React, { Fragment, memo } from "react";
-import { List } from "@mui/material";
-import { TaskContext } from "../context/TasksContext";
 import DraggableItem from "./DraggableItem";
 import type { Task } from "../types/Task";
 import type { DialogTaskData } from "../types/DialogTaskData";
 
 interface TaskListProps {
+  tasks: Task[];
   setDialogTaskData: React.Dispatch<React.SetStateAction<DialogTaskData>>;
   selectedIds: Set<string>;
   onToggleSelect: (id: string) => void;
+  disableDrag?: boolean;
 }
 
-const TaskList = memo(({ setDialogTaskData, selectedIds, onToggleSelect }: TaskListProps) => {
-  const { tasks } = React.useContext(TaskContext);
-
+const TaskList = memo(({ tasks, setDialogTaskData, selectedIds, onToggleSelect, disableDrag }: TaskListProps) => {
   const onEditTaskHandler = (id: string) => {
     setDialogTaskData({ openDialog: true, editableTaskId: id });
   };
 
   return (
     <Fragment>
-      <List>
+      <ul className="list-none p-0 m-0">
         {tasks.map((task: Task, index: number) => (
           <DraggableItem
             key={task.id}
@@ -29,13 +27,14 @@ const TaskList = memo(({ setDialogTaskData, selectedIds, onToggleSelect }: TaskL
             onEditTask={onEditTaskHandler}
             selected={selectedIds.has(task.id)}
             onToggleSelect={onToggleSelect}
+            disableDrag={disableDrag}
           />
         ))}
-      </List>
+      </ul>
     </Fragment>
   );
 });
 
-TaskList.displayName = 'TaskList';
+TaskList.displayName = "TaskList";
 
 export default TaskList;

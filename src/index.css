@@ -2,6 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --background: 210 67% 99%;
+    --foreground: 204 28% 10%;
+    --card: 210 67% 99%;
+    --card-foreground: 204 28% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 204 28% 10%;
+    --primary: 213 90% 35%;
+    --primary-foreground: 213 100% 97%;
+    --secondary: 210 40% 95%;
+    --secondary-foreground: 204 28% 10%;
+    --muted: 210 40% 95%;
+    --muted-foreground: 204 16% 48%;
+    --accent: 213 93% 90%;
+    --accent-foreground: 213 90% 35%;
+    --destructive: 4 90% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 207 33% 87%;
+    --input: 207 33% 87%;
+    --ring: 213 90% 35%;
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 204 28% 10%;
+    --foreground: 0 0% 100%;
+    --card: 204 18% 12%;
+    --card-foreground: 0 0% 100%;
+    --popover: 204 28% 10%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 212 91% 40%;
+    --primary-foreground: 213 100% 88%;
+    --secondary: 204 16% 20%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 204 16% 20%;
+    --muted-foreground: 207 19% 72%;
+    --accent: 213 78% 20%;
+    --accent-foreground: 213 100% 88%;
+    --destructive: 0 63% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 204 16% 23%;
+    --input: 204 16% 23%;
+    --ring: 212 91% 40%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
 a.underline {
   text-decoration: underline !important;
 }

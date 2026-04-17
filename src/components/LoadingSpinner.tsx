@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import React from "react";
+import { cn } from "../lib/utils";
 
 interface LoadingSpinnerProps {
   size?: number;
@@ -7,30 +7,22 @@ interface LoadingSpinnerProps {
   fullHeight?: boolean;
 }
 
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  size = 40, 
-  message = "Loading...", 
-  fullHeight = false 
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  message = "Loading...",
+  fullHeight = false,
 }) => {
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 2,
-        p: 3,
-        ...(fullHeight && { height: '70vh' }),
-      }}
-    >
-      <CircularProgress size={size} />
-      {message && (
-        <Typography variant="body2" color="text.secondary">
-          {message}
-        </Typography>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-3 p-6",
+        fullHeight && "h-[70vh]"
       )}
-    </Box>
+    >
+      <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-muted border-t-primary" />
+      {message && (
+        <p className="text-sm text-muted-foreground">{message}</p>
+      )}
+    </div>
   );
 };
 

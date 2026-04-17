@@ -32,14 +32,6 @@ module.exports = {
   },
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx'],
-    alias: {
-      '@mui/material': '@mui/material/legacy',
-      '@mui/styled-engine': '@mui/styled-engine/legacy',
-      '@mui/system': '@mui/system/legacy',
-      '@mui/base': '@mui/base/legacy',
-      '@mui/utils': '@mui/utils/legacy',
-      '@mui/lab': '@mui/lab/legacy',
-    },
   },
   plugins: [
     new CleanWebpackPlugin(),

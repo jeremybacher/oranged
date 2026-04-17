@@ -7,8 +7,7 @@ _Update this file before finishing any task. It is read at the start of every se
 ## Current state
 
 - Project is stable on `main` branch
-- Latest commits: improved tests & styles (#1), updated README (#3)
-- No active feature branches
+- MUI v5 fully replaced with shadcn/ui + Radix primitives + Tailwind CSS
 
 ## Active work
 
@@ -16,15 +15,26 @@ _None currently._
 
 ## Recent decisions
 
-- MUI v5 chosen for UI components (accessible, theming support)
+- **shadcn/ui** chosen for UI components (Radix primitives + Tailwind CSS variables)
+- MUI v5 (`@mui/material`, `@mui/icons-material`, `@emotion/*`) fully removed
+- Dark/light mode now via `dark` class on `<html>` (Tailwind `darkMode: 'class'`)
+- CSS variables in `src/index.css` drive all theme colors (light + dark)
+- `sonner` replaces MUI Snackbar/Alert for toast notifications
+- `lucide-react` replaces `@mui/icons-material`
+- UI primitives live in `src/components/ui/` (button, dialog, input, textarea, label, tabs, checkbox, tooltip)
+- `src/lib/utils.ts` exports `cn()` (clsx + tailwind-merge)
 - React DnD for drag-and-drop task reordering
 - Chrome `storage.sync` API used via `useStorage` hook for persistence
-- Tailwind used alongside MUI (utility classes for layout)
 - Webpack (not Vite/CRA) as bundler — required for Chrome extension manifest compatibility
+- Tab storage key `activeTab` now stores `"tasks"` / `"notes"` strings (was numeric 0/1)
 
 ## Known issues / tech debt
 
 _None currently recorded._
+
+## Recent changes
+
+- **Sort order toggle** (`tasks/index.tsx`, `TaskList.tsx`, `DraggableItem.tsx`): A sort button in the task list header cycles through three modes — Manual order (default, drag-and-drop enabled) → Active first (uncompleted tasks first) → Done first (completed tasks first). Drag-and-drop and grip handle are disabled while a sort is active. Sort is view-only and does not mutate the stored task order.
 
 ## Recent changes
 

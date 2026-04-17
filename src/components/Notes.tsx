@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, memo } from "react";
-import { Box, Divider, Tooltip } from "@mui/material";
 import { decode as base64_decode, encode as base64_encode } from "base-64";
+import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip";
 
 // ── Inline markdown + link renderer ──────────────────────────────────────────
 
@@ -12,25 +12,15 @@ function renderLine(line: string, lineIndex: number): React.ReactNode {
   const regex = new RegExp(INLINE_REGEX.source, "g");
   let match: RegExpExecArray | null;
 
-  // Block quote: lines starting with "> "
   if (/^>\s?/.test(line)) {
     const content = line.replace(/^>\s?/, "");
     return (
-      <Box
+      <blockquote
         key={lineIndex}
-        component="blockquote"
-        sx={{
-          borderLeft: "3px solid",
-          borderColor: "primary.main",
-          pl: 1.5,
-          ml: 0,
-          my: 0,
-          color: "text.secondary",
-          fontStyle: "italic",
-        }}
+        className="border-l-[3px] border-primary pl-3 ml-0 my-0 text-muted-foreground italic"
       >
         {renderLine(content, lineIndex)}
-      </Box>
+      </blockquote>
     );
   }
 
@@ -50,20 +40,12 @@ function renderLine(line: string, lineIndex: number): React.ReactNode {
       parts.push(<del key={key}>{token.slice(2, -2)}</del>);
     } else if (token.startsWith("`")) {
       parts.push(
-        <Box
+        <code
           key={key}
-          component="code"
-          sx={{
-            bgcolor: "action.hover",
-            borderRadius: "3px",
-            px: "4px",
-            py: "1px",
-            fontFamily: "monospace",
-            fontSize: "0.88em",
-          }}
+          className="bg-muted rounded px-1 py-0.5 font-mono text-[0.88em]"
         >
           {token.slice(1, -1)}
-        </Box>
+        </code>
       );
     } else {
       const href = /^https?:\/\//.test(token) ? token : `https://${token}`;
@@ -102,11 +84,11 @@ function renderMarkdown(text: string): React.ReactNode[] {
 // ── Toolbar config ────────────────────────────────────────────────────────────
 
 const TOOLBAR = [
-  { label: "B", style: { fontWeight: 700 }, marker: "**", tooltip: "Bold (Ctrl+B)" },
-  { label: "I", style: { fontStyle: "italic" }, marker: "*", tooltip: "Italic (Ctrl+I)" },
-  { label: "S", style: { textDecoration: "line-through" }, marker: "~~", tooltip: "Strikethrough" },
-  { label: "</>", style: { fontFamily: "monospace" }, marker: "`", tooltip: "Inline code (Ctrl+E)" },
-  { label: "❮❯", style: { letterSpacing: "-2px" }, marker: ">", tooltip: "Quote", linePrefix: true },
+  { label: "B", style: "font-bold", marker: "**", tooltip: "Bold (Ctrl+B)" },
+  { label: "I", style: "italic", marker: "*", tooltip: "Italic (Ctrl+I)" },
+  { label: "S", style: "line-through", marker: "~~", tooltip: "Strikethrough" },
+  { label: "</>", style: "font-mono text-[10px]", marker: "`", tooltip: "Inline code (Ctrl+E)" },
+  { label: "❝", style: "text-base leading-none", marker: ">", tooltip: "Quote", linePrefix: true },
 ];
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -149,113 +131,115 @@ const Notes = memo(() => {
     }, 500);
   }, []);
 
-  const handleNoteChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setNote(value);
-    saveNote(value);
-  }, [saveNote]);
+  const handleNoteChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const value = e.target.value;
+      setNote(value);
+      saveNote(value);
+    },
+    [saveNote]
+  );
 
-  const wrapSelection = useCallback((marker: string, linePrefix = false) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+  const wrapSelection = useCallback(
+    (marker: string, linePrefix = false) => {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selected = note.substring(start, end);
-    let newValue: string;
-    let cursorStart: number;
-    let cursorEnd: number;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selected = note.substring(start, end);
+      let newValue: string;
+      let cursorStart: number;
+      let cursorEnd: number;
 
-    if (linePrefix) {
-      // Prefix current line with "> "
-      const lineStart = note.lastIndexOf("\n", start - 1) + 1;
-      const prefix = `${marker} `;
-      newValue = note.substring(0, lineStart) + prefix + note.substring(lineStart);
-      cursorStart = start + prefix.length;
-      cursorEnd = end + prefix.length;
-    } else {
-      newValue = note.substring(0, start) + marker + selected + marker + note.substring(end);
-      cursorStart = start === end ? start + marker.length : start + marker.length;
-      cursorEnd = start === end ? start + marker.length : end + marker.length;
-    }
+      if (linePrefix) {
+        const lineStart = note.lastIndexOf("\n", start - 1) + 1;
+        const prefix = `${marker} `;
+        const lineContent = note.substring(lineStart);
+        if (lineContent.startsWith(prefix)) {
+          // Remove prefix
+          newValue = note.substring(0, lineStart) + lineContent.substring(prefix.length);
+          cursorStart = Math.max(lineStart, start - prefix.length);
+          cursorEnd = Math.max(lineStart, end - prefix.length);
+        } else {
+          // Add prefix
+          newValue = note.substring(0, lineStart) + prefix + note.substring(lineStart);
+          cursorStart = start + prefix.length;
+          cursorEnd = end + prefix.length;
+        }
+      } else {
+        const isWrapped =
+          selected.startsWith(marker) && selected.endsWith(marker) && selected.length > marker.length * 2;
+        if (isWrapped) {
+          // Remove markers
+          const unwrapped = selected.slice(marker.length, -marker.length);
+          newValue = note.substring(0, start) + unwrapped + note.substring(end);
+          cursorStart = start;
+          cursorEnd = start + unwrapped.length;
+        } else {
+          // Add markers
+          newValue = note.substring(0, start) + marker + selected + marker + note.substring(end);
+          cursorStart = start === end ? start + marker.length : start + marker.length;
+          cursorEnd = start === end ? start + marker.length : end + marker.length;
+        }
+      }
 
-    setNote(newValue);
-    saveNote(newValue);
+      setNote(newValue);
+      saveNote(newValue);
 
-    requestAnimationFrame(() => {
-      textarea.focus();
-      textarea.setSelectionRange(cursorStart, cursorEnd);
-    });
-  }, [note, saveNote]);
+      requestAnimationFrame(() => {
+        textarea.focus();
+        textarea.setSelectionRange(cursorStart, cursorEnd);
+      });
+    },
+    [note, saveNote]
+  );
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.ctrlKey || e.metaKey) {
-      if (e.key === "b") { e.preventDefault(); wrapSelection("**"); }
-      if (e.key === "i") { e.preventDefault(); wrapSelection("*"); }
-      if (e.key === "e") { e.preventDefault(); wrapSelection("`"); }
-    }
-  }, [wrapSelection]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === "b") { e.preventDefault(); wrapSelection("**"); }
+        if (e.key === "i") { e.preventDefault(); wrapSelection("*"); }
+        if (e.key === "e") { e.preventDefault(); wrapSelection("`"); }
+      }
+    },
+    [wrapSelection]
+  );
 
-  const containerSx = (theme: any) => ({
-    bgcolor: theme.palette.background.paper,
-    mb: 2,
-    display: "flex",
-    flexDirection: "column",
-    height: "70vh",
-    maxWidth: "100%",
-    borderRadius: 1,
-    overflow: "hidden",
-  });
+  const containerClass = "bg-background mb-2 flex flex-col h-[70vh] max-w-full rounded-sm overflow-hidden";
 
   if (isLoading) {
     return (
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "70vh", color: "text.secondary" }}>
+      <div className="flex items-center justify-center h-[70vh] text-muted-foreground text-sm">
         Loading...
-      </Box>
+      </div>
     );
   }
 
   if (isEditing) {
     return (
-      <Box sx={containerSx}>
-        {/* Formatting toolbar */}
-        <Box sx={{ display: "flex", alignItems: "center", px: 1, py: 0.5, gap: 0.25 }}>
+      <div className={containerClass}>
+        <div className="flex items-center px-3 py-2 gap-2 border-b border-border/50">
           {TOOLBAR.map((action) => (
-            <Tooltip key={action.label} title={action.tooltip} placement="top" arrow>
-              <Box
-                component="button"
-                aria-label={action.tooltip}
-                onMouseDown={(e: React.MouseEvent) => {
-                  e.preventDefault();
-                  wrapSelection(action.marker, !!action.linePrefix);
-                }}
-                sx={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minWidth: 30,
-                  height: 26,
-                  px: 1,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  borderRadius: 1,
-                  background: "transparent",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  fontSize: "0.8rem",
-                  color: "text.secondary",
-                  "&:hover": { bgcolor: "action.hover", color: "text.primary", borderColor: "text.secondary" },
-                  ...action.style,
-                }}
-              >
-                {action.label}
-              </Box>
+            <Tooltip key={action.label}>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={action.tooltip}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    wrapSelection(action.marker, !!action.linePrefix);
+                  }}
+                  className={`inline-flex items-center justify-center w-9 h-8 border border-border/70 rounded-xl bg-background text-sm text-muted-foreground cursor-pointer shadow-sm hover:bg-muted hover:text-foreground hover:border-border transition-colors ${action.style}`}
+                >
+                  {action.label}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{action.tooltip}</TooltipContent>
             </Tooltip>
           ))}
-        </Box>
-        <Divider />
-        {/* Textarea */}
-        <Box sx={{ flex: 1, position: "relative", p: 1 }}>
+        </div>
+        <div className="flex-1 relative p-2">
           <textarea
             ref={textareaRef}
             value={note}
@@ -263,32 +247,32 @@ const Notes = memo(() => {
             onBlur={() => setIsEditing(false)}
             onKeyDown={handleKeyDown}
             placeholder="Start typing your notes here..."
-            style={{
-              width: "100%",
-              height: "100%",
-              resize: "none",
-              border: "none",
-              outline: "none",
-              "&:focus-visible": { outline: "2px solid", outlineColor: "primary.main", outlineOffset: "2px" },
-              background: "transparent",
-              fontFamily: "inherit",
-              fontSize: "inherit",
-              color: "inherit",
-              lineHeight: "inherit",
-              boxSizing: "border-box",
-            }}
+            className="w-full h-full resize-none border-none outline-none bg-transparent font-[inherit] text-[15px] text-foreground leading-relaxed box-border focus:ring-0 focus:outline-none placeholder:text-muted-foreground"
           />
-        </Box>
-      </Box>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Box sx={containerSx} onClick={() => setIsEditing(true)} tabIndex={0} role="button" aria-label="Edit note" onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsEditing(true); }} style={{ cursor: "text", overflowY: "auto" }}>
-      <Box sx={{ p: 1, width: "100%", height: "100%", whiteSpace: "pre-wrap", wordBreak: "break-word", color: "text.primary" }}>
-        {note ? renderMarkdown(note) : <Box component="span" sx={{ color: "text.disabled" }}>Start typing your notes here...</Box>}
-      </Box>
-    </Box>
+    <div
+      className={`${containerClass} cursor-text overflow-y-auto`}
+      onClick={() => setIsEditing(true)}
+      tabIndex={0}
+      role="button"
+      aria-label="Edit note"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") setIsEditing(true);
+      }}
+    >
+      <div className="p-2 w-full h-full whitespace-pre-wrap break-words text-foreground text-[15px] leading-relaxed">
+        {note ? (
+          renderMarkdown(note)
+        ) : (
+          <span className="text-muted-foreground">Start typing your notes here...</span>
+        )}
+      </div>
+    </div>
   );
 });
 

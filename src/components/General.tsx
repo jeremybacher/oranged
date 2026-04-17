@@ -1,120 +1,50 @@
 import React, { useContext, useCallback, memo } from "react";
-import {
-  Box,
-  Stack,
-  Tab as MuiTab,
-  Tabs,
-  Snackbar,
-  Alert,
-} from "@mui/material";
 import Notes from "./Notes";
 import Tasks from "./tasks";
 import { TaskContext } from "./context/TasksContext";
-import { SnackContext } from "./context/SnackContext";
 import { useStorage } from "./hooks/useStorage";
-import type { Tab } from "./types/Tab";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 
 const General = memo(() => {
-  const { value: tab, setValue: setTabStorage } = useStorage<number>('activeTab', 0);
+  const { value: tab, setValue: setTabStorage } = useStorage<string>("activeTab", "tasks");
   const { tasks } = useContext(TaskContext);
-  const { message, setMessage } = useContext(SnackContext);
 
-  const handleTabChange = useCallback(async (_: React.SyntheticEvent, newTab: number) => {
-    try {
-      await setTabStorage(newTab);
-    } catch (error) {
-      console.error('Failed to save active tab:', error);
-    }
-  }, [setTabStorage]);
+  const activeTab = tab === "notes" ? "notes" : "tasks";
 
-  const handleCloseSnackbar = useCallback(() => {
-    setMessage("");
-  }, [setMessage]);
-
-  const tabs: Tab[] = [
-    {
-      id: 0,
-      label: "Tasks",
-      tabs: <Tasks />,
-      length: tasks.filter((task) => !task.completed).length,
+  const handleTabChange = useCallback(
+    async (value: string) => {
+      try {
+        await setTabStorage(value);
+      } catch (error) {
+        console.error("Failed to save active tab:", error);
+      }
     },
-    {
-      id: 1,
-      label: "Notes",
-      tabs: <Notes />,
-    },
-  ];
+    [setTabStorage]
+  );
+
+  const incompleteCount = tasks.filter((t) => !t.completed).length;
 
   return (
-    <Box
-      component="section"
-      sx={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}
-    >
-      <Stack id="general">
-        <Tabs
-          value={tab || 0}
-          onChange={handleTabChange}
-          textColor="inherit"
-          indicatorColor="primary"
-          variant="fullWidth"
-          sx={{
-            borderBottom: 1,
-            borderColor: 'divider',
-            mb: 2,
-          }}
-        >
-          {tabs.map((currentTab: Tab) => (
-            <MuiTab
-              key={currentTab.id}
-              value={currentTab.id}
-              label={
-                currentTab.length && currentTab.length > 0
-                  ? `${currentTab.label} (${currentTab.length})`
-                  : currentTab.label
-              }
-              sx={{ 
-                width: `${100 / tabs.length}%`,
-                minHeight: 48,
-              }}
-            />
-          ))}
-        </Tabs>
-      </Stack>
-      
-      {tabs.map((current) => (
-        <Box
-          key={current.id}
-          component="div"
-          sx={{
-            display: (tab || 0) === current.id ? "flex" : "none",
-            flexDirection: "column",
-            flex: 1,
-            minHeight: 0,
-          }}
-        >
-          {current.tabs}
-        </Box>
-      ))}
-      
-      <Snackbar
-        open={message !== ""}
-        autoHideDuration={5000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity="error"
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {message}
-        </Alert>
-      </Snackbar>
-    </Box>
+    <section className="flex flex-col flex-1 min-h-0">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col flex-1 min-h-0">
+        <TabsList className="mb-2">
+          <TabsTrigger value="tasks">
+            {incompleteCount > 0 ? `Tasks (${incompleteCount})` : "Tasks"}
+          </TabsTrigger>
+          <TabsTrigger value="notes">Notes</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="tasks" className="flex flex-col flex-1 min-h-0 mt-0">
+          <Tasks />
+        </TabsContent>
+        <TabsContent value="notes" className="flex flex-col flex-1 min-h-0 mt-0">
+          <Notes />
+        </TabsContent>
+      </Tabs>
+    </section>
   );
 });
 
-General.displayName = 'General';
+General.displayName = "General";
 
 export default General;

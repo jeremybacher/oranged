@@ -1,73 +1,57 @@
-import React, { useCallback, memo } from "react";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import customTheme from "./components/themes/customTheme";
-import { Container, CssBaseline, PaletteMode, Paper } from "@mui/material";
+import React, { useCallback, memo, useEffect } from "react";
 import { ToggleThemeMode } from "./components/ToggleThemeMode";
 import General from "./components/General";
 import { TaskProvider } from "./components/context/TasksContext";
 import { SnackProvider } from "./components/context/SnackContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { useStorage } from "./components/hooks/useStorage";
+import { Toaster } from "sonner";
+import { TooltipProvider } from "./components/ui/tooltip";
+
+type ThemeMode = "light" | "dark";
 
 const App = memo(() => {
-  const { value: mode, setValue: setMode } = useStorage<PaletteMode>('themeMode', 'light');
-  const theme = createTheme(customTheme(mode || 'light'));
+  const { value: mode, setValue: setMode } = useStorage<ThemeMode>("themeMode", "light");
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (mode === "dark") {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
+  }, [mode]);
 
   const toggleThemeMode = useCallback(async () => {
     const newMode = mode === "light" ? "dark" : "light";
     try {
       await setMode(newMode);
     } catch (error) {
-      console.error('Failed to save theme mode:', error);
+      console.error("Failed to save theme mode:", error);
     }
   }, [mode, setMode]);
 
   return (
     <ErrorBoundary>
-      <ThemeProvider theme={theme}>
+      <TooltipProvider>
         <SnackProvider>
           <TaskProvider>
-            <CssBaseline />
-            <Container
-              maxWidth={false}
-              component="main"
-              sx={(theme) => ({
-                bgcolor: theme.palette.mode === "light" ? "#cfe8fc" : "#02294f",
-                minHeight: "100vh",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                p: { xs: 1, sm: 2 },
-              })}
-            >
-              <Paper
-                elevation={3}
-                sx={(theme) => ({
-                  display: "flex",
-                  flexDirection: "column",
-                  borderRadius: "12px",
-                  padding: { xs: "16px", sm: "20px" },
-                  background:
-                    theme.palette.mode === "light" ? "#fbfcfe" : "#131b20",
-                  boxShadow: "rgba(0, 0, 0, 0.1) 0px 8px 32px",
-                  width: "100%",
-                  maxWidth: { xs: "100%", sm: "900px", md: "1200px" },
-                  minHeight: { xs: "calc(100vh - 16px)", sm: "600px" },
-                  maxHeight: { xs: "calc(100vh - 16px)", sm: "80vh" },
-                })}
-              >
+            <div className="min-h-screen flex flex-col items-center justify-center p-1 sm:p-2 bg-[#cfe8fc] dark:bg-[#02294f]">
+              <div className="flex flex-col rounded-[12px] p-4 sm:p-5 bg-[#fbfcfe] dark:bg-[#131b20] shadow-[rgba(0,0,0,0.1)_0px_8px_32px] w-full max-w-full sm:max-w-[900px] md:max-w-[1200px] min-h-[calc(100vh-8px)] sm:min-h-[600px] sm:max-h-[80vh]">
                 <General />
-              </Paper>
-              {mode && <ToggleThemeMode mode={mode} toggleThemeMode={toggleThemeMode} />}
-            </Container>
+              </div>
+              {mode && (
+                <ToggleThemeMode mode={mode} toggleThemeMode={toggleThemeMode} />
+              )}
+            </div>
+            <Toaster position="bottom-center" richColors />
           </TaskProvider>
         </SnackProvider>
-      </ThemeProvider>
+      </TooltipProvider>
     </ErrorBoundary>
   );
 });
 
-App.displayName = 'App';
+App.displayName = "App";
 
 export default App;

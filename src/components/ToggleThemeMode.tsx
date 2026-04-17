@@ -1,44 +1,36 @@
 import React, { memo } from "react";
-import { PaletteMode, Box, IconButton, Tooltip } from "@mui/material";
-import WbSunnyRoundedIcon from "@mui/icons-material/WbSunnyRounded";
-import ModeNightRoundedIcon from "@mui/icons-material/ModeNightRounded";
+import { Sun, Moon } from "lucide-react";
+import { Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip";
+import { Button } from "./ui/button";
 
 interface ToggleThemeModeProps {
-  mode: PaletteMode;
+  mode: string;
   toggleThemeMode: () => void;
 }
 
-export const ToggleThemeMode = memo(({
-  mode,
-  toggleThemeMode,
-}: ToggleThemeModeProps) => {
+export const ToggleThemeMode = memo(({ mode, toggleThemeMode }: ToggleThemeModeProps) => {
   const isDark = mode === "dark";
-  
+
   return (
-    <Box sx={{ position: "fixed", bottom: 16, left: 16, zIndex: 1000 }}>
-      <Tooltip title={`Switch to ${isDark ? 'light' : 'dark'} mode`}>
-        <IconButton
-          onClick={toggleThemeMode}
-          size="large"
-          aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-          sx={{
-            bgcolor: 'background.paper',
-            boxShadow: 2,
-            '&:hover': {
-              bgcolor: 'background.paper',
-              boxShadow: 4,
-            },
-          }}
-        >
-          {isDark ? (
-            <WbSunnyRoundedIcon />
-          ) : (
-            <ModeNightRoundedIcon />
-          )}
-        </IconButton>
+    <div className="fixed bottom-4 left-4 z-[1000]">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleThemeMode}
+            aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
+            className="rounded-full h-10 w-10 bg-background shadow-md hover:shadow-lg border-border"
+          >
+            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          Switch to {isDark ? "light" : "dark"} mode
+        </TooltipContent>
       </Tooltip>
-    </Box>
+    </div>
   );
 });
 
-ToggleThemeMode.displayName = 'ToggleThemeMode';
+ToggleThemeMode.displayName = "ToggleThemeMode";
