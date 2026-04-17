@@ -59,4 +59,4 @@ _None currently recorded._
 
 ---
 
-_Last updated: 2026-04-17 — initial CONTEXT.md creation_
+_Last updated: 2026-04-17 — README refreshed for current stack and validation status recorded_
