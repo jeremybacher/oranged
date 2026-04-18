@@ -42,6 +42,7 @@ _None currently recorded._
 - `utils/renderWithLinks.tsx`: Shared utility that splits text on URLs (http/https + bare domains) and renders them as `<a target="_blank">` links.
 - `DraggableItem.tsx`: Task description rendered via `renderWithLinks` — URLs are clickable.
 - `Notes.tsx`: View/edit toggle — view mode renders note text with clickable links; clicking switches to textarea edit mode; blur returns to view mode.
+- `README.md`: Release ZIP install instructions were moved before the tech stack and rewritten as a clearer quick-install path, including guidance to load the extracted `dist/` folder in Chrome.
 
 ## Architecture notes
 
@@ -59,4 +60,4 @@ _None currently recorded._
 
 ---
 
-_Last updated: 2026-04-17 — README refreshed for current stack and validation status recorded_
+_Last updated: 2026-04-18 — README quick-install section moved earlier and improved_

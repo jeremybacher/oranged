@@ -18,6 +18,18 @@ Oranged! is a Chrome extension that replaces the default new tab page with a com
 - Shows incomplete task counts in the Tasks tab and in the document title.
 - Uses toast notifications and an error boundary for error handling.
 
+## Install from releases
+
+Use this path if you want to install the packaged extension.
+
+1. Download the latest release archive from [GitHub Releases](https://github.com/jeremybacher/oranged/releases).
+2. Extract the downloaded `oranged-extension-v*.zip` file.
+3. Open the extracted folder and confirm it contains a `dist/` directory.
+4. In Chrome, open `chrome://extensions/`.
+5. Enable `Developer mode`.
+6. Click `Load unpacked`.
+7. Select the extracted `dist/` folder, not the outer release folder.
+
 ## Tech Stack
 
 - React 18
