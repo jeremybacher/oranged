@@ -1,4 +1,5 @@
-import React, { ReactNode, createContext, useEffect } from "react";
+import React, { createContext, useEffect } from "react";
+import type { ReactNode } from "react";
 import type { Task } from "../types/Task";
 import { useJSONStorage } from "../hooks/useStorage";
 

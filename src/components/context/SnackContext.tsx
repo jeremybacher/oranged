@@ -1,4 +1,5 @@
-import React, { ReactNode, useCallback } from "react";
+import React, { useCallback } from "react";
+import type { ReactNode } from "react";
 import { toast } from "sonner";
 
 interface SnackContextProps {
