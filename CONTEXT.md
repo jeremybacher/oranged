@@ -34,6 +34,7 @@ _None currently recorded._
 
 ## Recent changes
 
+- **Dependency updates** (batched): `@babel/core` 7.24 → 7.29, `ws` 8.18 → 8.22 (yarn.lock), and the GitHub Actions group (`checkout`, `setup-node`, `upload/download-artifact`, `codecov-action`, `action-gh-release`) to their latest majors. Applied together instead of as three Dependabot PRs.
 - **Dependabot** (`.github/dependabot.yml`): weekly (Monday 08:00 UTC) grouped updates for npm (yarn.lock) and GitHub Actions. Security updates are grouped separately from version updates; minor/patch of dev and prod dependencies are grouped, majors arrive as their own PR.
 - **Sort order toggle** (`tasks/index.tsx`, `TaskList.tsx`, `DraggableItem.tsx`): A sort button in the task list header cycles through three modes — Manual order (default, drag-and-drop enabled) → Active first (uncompleted tasks first) → Done first (completed tasks first). Drag-and-drop and grip handle are disabled while a sort is active. Sort is view-only and does not mutate the stored task order.
 
@@ -61,4 +62,4 @@ _None currently recorded._
 
 ---
 
-_Last updated: 2026-11-09 — added dependabot config_
+_Last updated: 2026-11-09 — batched dependency updates_
