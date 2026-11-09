@@ -1,0 +1,187 @@
+name: Version
+
+# Versions and publishes by itself. The number comes from the type of the change: the conventional
+# prefix of the branch and of the PR title, whichever is stronger.
+#
+#   feat/...                                 -> minor   2.0.0 -> 2.1.0
+#   fix/... hotfix/... perf/...              -> patch   2.0.0 -> 2.0.1
+#   a `!` in the title or BREAKING CHANGE:   -> major   2.0.0 -> 3.0.0
+#   docs/ chore/ ci/ test/ refactor/ style/  -> nothing is published
+#
+# The bump is written into the PR's own branch, not main: main is protected and needs a PR, and the
+# number is visible in the diff before merging. On merge, main already carries the version and only
+# the tag is missing, which branch protection does let the workflow create. The count starts from
+# package.json on the base branch, and a version at or above the computed one is left alone, so
+# writing the number by hand in the PR still wins.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    name: Write the version into the PR
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Read the type of change
+        id: type
+        env:
+          BRANCH: ${{ github.head_ref }}
+          SUBJECT: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          rank() {
+            case "$1" in
+              feat) echo 2 ;;
+              fix|hotfix|perf) echo 1 ;;
+              *) echo 0 ;;
+            esac
+          }
+
+          from_branch=$(printf '%s' "$BRANCH" | sed -n 's|^\([a-z]*\)/.*|\1|p')
+          from_subject=$(printf '%s' "$SUBJECT" | sed -n 's|^\([a-z]*\)(\{0,1\}[^)]*)\{0,1\}!\{0,1\}:.*|\1|p')
+
+          best=0
+          for candidate in "$from_branch" "$from_subject"; do
+            r=$(rank "$candidate")
+            if [ "$r" -gt "$best" ]; then best=$r; fi
+          done
+
+          # A `!` before the colon, or a BREAKING CHANGE footer. Both are anchored: talking about the
+          # convention in prose (a PR body explaining the rule) must not count as using it.
+          if printf '%s' "$SUBJECT" | grep -qE '^[a-z]+(\([^)]*\))?!:'; then best=3; fi
+          if printf '%s' "$BODY" | grep -qE '^BREAKING[ -]CHANGE:'; then best=3; fi
+
+          case "$best" in
+            3) bump=major ;;
+            2) bump=minor ;;
+            1) bump=patch ;;
+            *) bump=none ;;
+          esac
+
+          echo "bump=$bump" >> "$GITHUB_OUTPUT"
+          echo "::notice::$bump — branch '${BRANCH:-none}', title '$SUBJECT'"
+
+      - name: Work out the number
+        id: next
+        env:
+          BASE: ${{ github.base_ref }}
+        run: |
+          bump="${{ steps.type.outputs.bump }}"
+          if [ "$bump" = "none" ]; then
+            echo "write=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Nothing to release for this kind of change"
+            exit 0
+          fi
+
+          base=$(git show "origin/$BASE:package.json" | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version")
+          current=$(node -p "require('./package.json').version")
+
+          result=$(node -e '
+            const parse = (v) => {
+              const parts = v.split(".").map(Number)
+              if (parts.length !== 3 || parts.some(Number.isNaN)) throw new Error("bad version: " + v)
+              return parts
+            }
+            const [major, minor, patch] = parse(process.argv[1])
+            const bump = process.argv[2]
+            const target =
+              bump === "major" ? [major + 1, 0, 0] :
+              bump === "minor" ? [major, minor + 1, 0] :
+              [major, minor, patch + 1]
+
+            // Only write when the branch is below the target. Equal means a second run of the same
+            // PR, nothing to do; above means a version set by hand, and overwriting it with the
+            // computed number would be arguing with whoever wrote it.
+            const cmp = (a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]
+            console.log(`${target.join(".")} ${cmp(parse(process.argv[3]), target) < 0}`)
+          ' "$base" "$bump" "$current")
+
+          target="${result% *}"
+          write="${result#* }"
+
+          echo "version=$target" >> "$GITHUB_OUTPUT"
+          echo "write=$write" >> "$GITHUB_OUTPUT"
+          echo "::notice::base $base, this branch says $current, target $target (write: $write)"
+
+      - name: Write it into the branch
+        if: steps.next.outputs.write == 'true'
+        env:
+          VERSION: ${{ steps.next.outputs.version }}
+        run: |
+          node -e '
+            const fs = require("fs")
+            const version = process.env.VERSION
+            for (const file of ["package.json", "public/manifest.json"]) {
+              const text = fs.readFileSync(file, "utf8")
+              const next = text.replace(/"version":\s*"[^"]+"/, `"version": "${version}"`)
+              if (next === text) throw new Error("no version field changed in " + file)
+              fs.writeFileSync(file, next)
+            }
+          '
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json public/manifest.json
+          git commit -m "chore(release): v$VERSION"
+          git push origin "HEAD:$GITHUB_HEAD_REF"
+
+  # The tag is pushed with GITHUB_TOKEN, and those pushes do not trigger workflows, so the release
+  # is called from here instead of waiting on the tag trigger.
+  tag:
+    name: Tag what landed
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
+      release: ${{ steps.tag.outputs.release }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Tag it if it is not tagged
+        id: tag
+        run: |
+          version=$(node -p "require('./package.json').version")
+          manifest=$(node -p "require('./public/manifest.json').version")
+
+          if [ "$version" != "$manifest" ]; then
+            echo "::error::package.json is $version and the manifest is $manifest — not tagging a version that does not exist"
+            exit 1
+          fi
+
+          if git rev-parse "v$version" >/dev/null 2>&1; then
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::v$version is already tagged — nothing to publish"
+            exit 0
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git tag -a "v$version" -m "v$version"
+          git push origin "v$version"
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "release=true" >> "$GITHUB_OUTPUT"
+          echo "::notice::tagged v$version"
+
+  release:
+    name: Release
+    needs: tag
+    if: needs.tag.outputs.release == 'true'
+    uses: ./.github/workflows/release.yml
+    permissions:
+      contents: write
+    with:
+      tag: v${{ needs.tag.outputs.version }}

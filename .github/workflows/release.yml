@@ -1,0 +1,65 @@
+name: Release
+
+# Publishes the installable zip for a tagged version.
+#
+# Reached three ways: the Version workflow calls it after tagging a merge to main (the normal
+# path), a manual `git push --tags`, or by hand from the Actions tab. In every case what gets
+# published is a tag, never a branch.
+on:
+  push:
+    tags: ['v*']
+  workflow_call:
+    inputs:
+      tag:
+        description: The tag to publish, with its v (v2.0.1).
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The tag to publish, with its v (v2.0.1).
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+          cache: yarn
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn type-check
+      - run: yarn test --ci
+      - run: yarn build
+
+      # The manifest version has to match the tag, or people install a zip that says a different
+      # version than the one they downloaded.
+      - name: Check manifest version matches the tag
+        run: |
+          manifest=$(node -p "require('./dist/manifest.json').version")
+          if [ "${TAG#v}" != "$manifest" ]; then
+            echo "::error::Tag $TAG does not match manifest version $manifest"
+            exit 1
+          fi
+
+      - name: Package the unpacked extension
+        run: cd dist && zip -r "../oranged-extension-$TAG.zip" .
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ env.TAG }}
+          name: Release ${{ env.TAG }}
+          files: oranged-extension-${{ env.TAG }}.zip
+          generate_release_notes: true
