@@ -1,0 +1,64 @@
+name: Security
+
+# Two different questions: does what we have installed carry known holes, and does our own code
+# fall into a dangerous pattern.
+#
+# It also runs by itself on Mondays, which is the trigger that does the real work: push and
+# pull_request only answer "does what I just wrote bring something bad", but advisories are
+# published later. A clean lockfile stops being clean without anyone touching the repo. The cron
+# only runs on the default branch, and GitHub disables it after 60 days without repository activity.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+          cache: yarn
+
+      - run: yarn install --frozen-lockfile
+
+      # What travels inside the zip that people install and run in their browser: any advisory
+      # here deserves a read before publishing, so the bar is low.
+      - name: Audit what ships
+        run: yarn audit --groups dependencies --level moderate
+
+      # Webpack, jest and the rest never reach anyone's browser. They matter (they build the zip)
+      # but the bar is the serious one, so a minor advisory in test tooling does not block a fix.
+      - name: Audit the build and test tooling
+        run: yarn audit --groups devDependencies --level high
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v7
+
+      # No build step on purpose: CodeQL reads the TypeScript source. Analysing the webpack bundle
+      # would be analysing minified code with React inside, which is noise.
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:javascript-typescript
