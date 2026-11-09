@@ -1,0 +1,46 @@
+version: 2
+
+# Weekly, grouped dependency updates so they land as a few PRs instead of one per package.
+# Security updates are grouped separately: one advisory often touches several packages of the
+# same tree, and they should not wait behind the weekly version bumps.
+updates:
+  - package-ecosystem: npm # also covers yarn: reads yarn.lock
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '08:00'
+      timezone: UTC
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: 'chore(deps)'
+      prefix-development: 'chore(deps-dev)'
+    groups:
+      npm-security:
+        applies-to: security-updates
+        patterns: ['*']
+      dev-tooling:
+        dependency-type: development
+        update-types: [minor, patch]
+      production:
+        dependency-type: production
+        update-types: [minor, patch]
+    labels: [dependencies]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '08:00'
+      timezone: UTC
+    commit-message:
+      prefix: 'ci(deps)'
+    groups:
+      actions:
+        applies-to: version-updates
+        patterns: ['*']
+      actions-security:
+        applies-to: security-updates
+        patterns: ['*']
+    labels: [dependencies]
