@@ -15,14 +15,14 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.x, 22.x]
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'
@@ -44,8 +44,8 @@ jobs:
         run: yarn test:coverage --ci
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v3
-        if: matrix.node-version == '18.x'
+        uses: codecov/codecov-action@v7
+        if: matrix.node-version == '20.x'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
@@ -58,12 +58,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: '18.x'
+          node-version: '20.x'
           cache: 'yarn'
 
       - name: Install dependencies
@@ -73,7 +73,7 @@ jobs:
         run: yarn build
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: extension-build
           path: dist/
@@ -90,10 +90,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: extension-build
           path: dist/
@@ -102,7 +102,7 @@ jobs:
         run: zip -r oranged-extension-${{ github.ref_name }}.zip dist/
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
