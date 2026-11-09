@@ -1,11 +1,19 @@
 {
   "preset": "ts-jest",
   "testEnvironment": "jsdom",
-  "setupFilesAfterEnv": ["<rootDir>/src/setupTests.ts"],
+  "setupFilesAfterEnv": [
+    "<rootDir>/src/setupTests.ts"
+  ],
   "moduleNameMapper": {
-    "\\.(css|less|scss|sass)$": "identity-obj-proxy"
+    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+    "^uuid$": "<rootDir>/src/__mocks__/uuid.ts"
   },
-  "moduleFileExtensions": ["ts", "tsx", "js", "jsx"],
+  "moduleFileExtensions": [
+    "ts",
+    "tsx",
+    "js",
+    "jsx"
+  ],
   "testMatch": [
     "<rootDir>/src/**/__tests__/**/*.(ts|tsx|js)",
     "<rootDir>/src/**/?(*.)(spec|test).(ts|tsx|js)"
