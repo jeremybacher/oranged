@@ -34,6 +34,7 @@ _None currently recorded._
 
 ## Recent changes
 
+- **v2.0.2 release**: first published build with the dependency security fixes (all `high` Dependabot alerts resolved), plus Babel 8, jest 30, uuid 14 and the Radix/lucide/sonner updates. v2.0.1 predates all of them.
 - **Automated versioning, release and security CI** (`.github/workflows/`): `main.yml` (tests + build, no more tag release job), `version.yml` (writes the version into the PR from the conventional prefix of the branch/title: feat=minor, fix/hotfix/perf=patch, `!`/BREAKING CHANGE=major, others publish nothing; tags on merge), `release.yml` (builds and publishes the zip for a tag, checks manifest version = tag), `security.yml` (yarn audit: prod at moderate, dev at high, weekly cron, plus CodeQL). `package.json` and `public/manifest.json` versions were 0.0.1 although v2.0.1 was already released; both synced to 2.0.1 so the next bump starts from the real number. **Branch names now decide the release**: use `feat/`, `fix/`, `chore/` accurately.
 - **Dependency updates** (batched): `@babel/core` 7.24 → 7.29, `ws` 8.18 → 8.22 (yarn.lock), and the GitHub Actions group (`checkout`, `setup-node`, `upload/download-artifact`, `codecov-action`, `action-gh-release`) to their latest majors. Plus the dev-tooling group (webpack 5.112, postcss 8.5, ts-jest, ts-loader and others). Production group (radix-ui, lucide-react, sonner, tailwind-merge, @types/chrome), typescript 5.9 and webpack-merge 6 also folded in. All open `high` Dependabot alerts (dev-only transitives: braces, flatted, glob, lodash, minimatch, picomatch, serialize-javascript, ws, systemjs) are fixed via `resolutions` in `package.json` plus lockfile re-resolution; do not add transitive packages to `dependencies`. CI Node matrix is now 20.x/22.x (Node 18 is EOL and `serialize-javascript` 7, needed for the RCE fix, requires >=20); build job uses Node 20. `uuid` 14 and `jest` 30 / `@types/jest` 30 / `jest-environment-jsdom` 30 followed separately: uuid 14 is ESM-only, so Jest resolves `uuid` to the stub in `src/__mocks__/uuid.ts` via `moduleNameMapper` (the bundle still ships the real package); `@types/uuid` was removed because uuid ships its own types. Applied together instead of as separate Dependabot PRs.
 - **Dependabot** (`.github/dependabot.yml`): weekly (Monday 08:00 UTC) grouped updates for npm (yarn.lock) and GitHub Actions. Security updates are grouped separately from version updates; minor/patch of dev and prod dependencies are grouped, majors arrive as their own PR.
@@ -63,4 +64,4 @@ _None currently recorded._
 
 ---
 
-_Last updated: 2026-11-09 — automated versioning, release and security CI_
+_Last updated: 2026-11-09 — v2.0.2 release with security fixes_
