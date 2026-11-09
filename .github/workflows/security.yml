@@ -34,13 +34,23 @@ jobs:
 
       # What travels inside the zip that people install and run in their browser: any advisory
       # here deserves a read before publishing, so the bar is low.
+      #
+      # yarn 1 exits with a bitmask (1 info, 2 low, 4 moderate, 8 high, 16 critical) and `--level`
+      # only filters what is printed, not the exit code. So the threshold is applied here: fail
+      # only when a bit at or above the bar is set.
       - name: Audit what ships
-        run: yarn audit --groups dependencies --level moderate
+        run: |
+          code=0
+          yarn audit --groups dependencies --level moderate || code=$?
+          [ $((code & 28)) -eq 0 ]
 
       # Webpack, jest and the rest never reach anyone's browser. They matter (they build the zip)
       # but the bar is the serious one, so a minor advisory in test tooling does not block a fix.
       - name: Audit the build and test tooling
-        run: yarn audit --groups devDependencies --level high
+        run: |
+          code=0
+          yarn audit --groups devDependencies --level high || code=$?
+          [ $((code & 24)) -eq 0 ]
 
   codeql:
     name: CodeQL
