@@ -1,6 +1,6 @@
 {
   "name": "oranged",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Oranged! is a Google Chrome extension that helps you be more organized and productive. It's a simple to-do list and Note pad within reach of a new tab.",
   "main": "index.js",
   "scripts": {
@@ -83,6 +83,9 @@
     "**/serialize-javascript": "^7.0.5",
     "**/@babel/plugin-transform-modules-systemjs": "^7.29.4",
     "**/ws": "^8.22.2",
-    "**/@typescript-eslint/typescript-estree/minimatch": "^9.0.9"
+    "**/@typescript-eslint/typescript-estree/minimatch": "^11.0.1",
+    "**/sucrase/**/minimatch": "^11.0.1",
+    "**/glob/minimatch": "^11.0.1",
+    "**/test-exclude/**/minimatch": "^11.0.1"
   }
 }
